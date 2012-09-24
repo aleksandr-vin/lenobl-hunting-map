@@ -1,0 +1,85 @@
+﻿/* Можно удалить (разметка демо-страницы) */
+#map_container{position:relative; width:1000px;}
+#map_canvas{position:absolute; right:0px; top:0px;}
+#side_bar{position:absolute; left:0px; top:0px;}
+
+/* Блок карты */
+#map_canvas { 
+	width:800px;
+	height:600px;
+}
+
+/* Блок мини-карты */
+#overlay_map{
+	width:200px; 
+	height:130px; 
+	border: solid 1px black; 
+	border-width: 1px 0px 0px 1px;
+}
+
+/* Блок бокового меню (меню выбора объекта на карте) */
+#side_bar { 
+	width:200px;
+	font-family:Tahoma, Verdana, Arial, Helvetica, Sans-Serif;
+	font-size:11px;
+	color:#6D83B1;
+}
+
+/* Заголовок пункта бокового меню (Название района) */
+.side_bar_header {
+	padding:4px 4px 4px 5px;
+	margin:1px;
+	font-weight:bold;
+}
+.side_bar_header:hover {
+	padding:2px 2px 2px 5px;
+	border-top:2px solid #6D83B1;
+	border-bottom:2px solid #6D83B1;
+	background-color:#F2F6FC;
+	cursor:pointer;
+}
+
+/* Выбранный (развернутый) заголовок пункта бокового меню (Название района) */
+.side_bar_header.selected {
+	padding:2px 2px 2px 5px;
+	border-top:2px solid #6D83B1;
+	border-bottom:2px solid #6D83B1;
+	background-color:#F2F6FC;
+}
+
+/* Группа объектов внутри района
+   (по умолчанию скрыта, отображается при щелчке на название района) */
+.side_bar_group {
+	padding:1px;
+	margin:1px;
+	border-left:1px dotted gray;
+	border-right:1px dotted gray;
+	border-bottom:1px dotted gray;
+	border-color:#6D83B1;
+}
+
+/* Категория объектов внутри группы (подзаголовок) */
+.side_bar_category {
+	padding:1px 3px 1px 7px;
+	font-weight:bold;
+}
+
+/* Объект внутри группы (охотопользователь, ООПТ...) */
+.side_bar_element {
+	padding:1px 3px 1px 15px;
+}
+.side_bar_element:hover {
+	padding:0px 3px 0px 15px;
+	border-top:1px solid #6D83B1;
+	border-bottom:1px solid #6D83B1;
+	background-color:#F2F6FC;
+	cursor:pointer;
+}
+
+/* Выбранный объект внутри группы (для которого загружены границы) */
+.side_bar_element.selected {
+	padding:0px 3px 0px 15px;
+	border-top:1px solid #6D83B1;
+	border-bottom:1px solid #6D83B1;
+	background-color:#F2F6FC;
+}
