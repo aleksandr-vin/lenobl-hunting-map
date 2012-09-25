@@ -3,11 +3,11 @@
 */
 
 // Путь к папке с tile'ами топоосновы
-var PATH_TO_TILES_FOLDER = "tiles/";
+var PATH_TO_TILES_FOLDER = "http://old.lenobl.ru/map/tiles/";
 
 // Путь к папке с xml-файлами описаний границ
 // Папка должна содержать файл bounds.xml, а также указанный в нем перечень ID.xml файлов
-var PATH_TO_BOUNDS_FOLDER = "bounds/";
+var PATH_TO_BOUNDS_FOLDER = "http://old.lenobl.ru/map/bounds/";
 
 // Параметры отображения границ
 var BOUNDS_COLOR = "#FF0000";		// Цвет линий границ
