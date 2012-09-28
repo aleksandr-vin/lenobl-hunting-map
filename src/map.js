@@ -191,12 +191,14 @@ function load_bound(id, key){
 		}
 		document.getElementById("side_bar_element_" + key + "_" + id).className += " selected";
 		selected_element_id = key + "_" + id;
-		if (polyline.length > 0) {
+		if (0 && polyline.length > 0) {
 			for (var i = 0; i < polyline.length; i++) {
 				polyline[i].setMap(null);
 			}
 			polyline = Array();
 		}
+	    var old_polyline = polyline;
+	    polyline = Array();
 		var line = data.documentElement.getElementsByTagName("points");
 		var area = new google.maps.LatLngBounds();
 		for (var j = 0; j < line.length; j++) {
