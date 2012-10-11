@@ -21,7 +21,7 @@ var BOUNDS_OPACITY = 1.0;			// Прозрачность линий границ 
 
 // Инициализация карты
 function initialize() {
-	lo_center = new google.maps.LatLng(59.975,31.348);
+    	lo_center = new google.maps.LatLng(59.975,31.348);
 	
 	var lo_MapType = new CustomMapType();
 	
@@ -29,7 +29,7 @@ function initialize() {
 	lo_MapType_mini.maxZoom = 7;
 	lo_MapType_mini.minZoom = 5;
 	
-	polyline = new Array();
+	polylines = new Object();
 	selected_group_id = 'none';
 	selected_element_id = 'none';
 	
@@ -44,7 +44,9 @@ function initialize() {
 			style: google.maps.NavigationControlStyle.DEFAULT 
 		},
 		mapTypeControlOptions: {
-			mapTypeIds: ['lo_map', google.maps.MapTypeId.SATELLITE]
+		    mapTypeIds: ['lo_map',
+				 google.maps.MapTypeId.SATELLITE,
+				 google.maps.MapTypeId.HYBRID]
 		}
 	}
 	
@@ -106,10 +108,14 @@ function initialize() {
 	google.maps.event.addListener(map, 'bounds_changed', function() {	
 		currentViewBounds = map.getBounds();
 		var overlayPoints = [
-			new google.maps.LatLng(currentViewBounds.getNorthEast().lat(), currentViewBounds.getNorthEast().lng()),
-			new google.maps.LatLng(currentViewBounds.getNorthEast().lat(), currentViewBounds.getSouthWest().lng()),
-			new google.maps.LatLng(currentViewBounds.getSouthWest().lat(), currentViewBounds.getSouthWest().lng()),
-			new google.maps.LatLng(currentViewBounds.getSouthWest().lat(), currentViewBounds.getNorthEast().lng())
+			new google.maps.LatLng(currentViewBounds.getNorthEast().lat(),
+					       currentViewBounds.getNorthEast().lng()),
+			new google.maps.LatLng(currentViewBounds.getNorthEast().lat(),
+					       currentViewBounds.getSouthWest().lng()),
+			new google.maps.LatLng(currentViewBounds.getSouthWest().lat(),
+					       currentViewBounds.getSouthWest().lng()),
+			new google.maps.LatLng(currentViewBounds.getSouthWest().lat(),
+					       currentViewBounds.getNorthEast().lng())
 		];
 		overlayPath.setPath(overlayPoints);
 	});
@@ -162,63 +168,83 @@ CustomMapType.prototype.alt = "Карта Ленинградской облас�
 
 // Обработка bounds.xml
 function bounds_init(){
-	downloadUrl(PATH_TO_BOUNDS_FOLDER+"bounds.xml", function(data) {
-		districts = new Array();
-		side_bar_html ='';
-		var d = data.documentElement.getElementsByTagName("d");
-		for (var i = 0; i < d.length; i++) {
-		    side_bar_html += "<div class='side_bar_header' id='side_bar_header_"+i+"' onClick='district_click("+i+")'>" + d[i].getAttribute("name") + "</div><div class='side_bar_group' id='side_bar_group_"+i+"' style='display:none'>";
-			var g = d[i].getElementsByTagName("g");
-			for (var j = 0; j < g.length; j++) {
-				side_bar_html += "<div class='side_bar_category'>" + g[j].getAttribute("name") + "</div>";
-				var b = g[j].getElementsByTagName("b");
-				for (var k = 0; k < (b.length); k++) {
-					side_bar_html += '<div class="side_bar_element" id="side_bar_element_'+i+'_'+b[k].getAttribute("id")+'" onClick="load_bound(&quot;'+b[k].getAttribute("id")+'&quot;, &quot;'+i+'&quot;)">'+b[k].getAttribute("name")+'</div>';
-				}
-			}
-			side_bar_html += "</div>"
+    downloadUrl(PATH_TO_BOUNDS_FOLDER+"bounds.xml", function(data) {
+	districts = new Array();
+	side_bar_html ='';
+	var d = data.documentElement.getElementsByTagName("d");
+	for (var i = 0; i < d.length; i++) {
+	    side_bar_html += "<div class='side_bar_header' id='side_bar_header_"+i+"' onClick='district_click("+i+")'>" + d[i].getAttribute("name") + "</div><div class='side_bar_group' id='side_bar_group_"+i+"' style='display:none'>";
+	    var g = d[i].getElementsByTagName("g");
+	    for (var j = 0; j < g.length; j++) {
+		side_bar_html += "<div class='side_bar_category'>" + g[j].getAttribute("name") + "</div>";
+		var b = g[j].getElementsByTagName("b");
+		for (var k = 0; k < (b.length); k++) {
+		    side_bar_html += '<div class="side_bar_element" id="side_bar_element_'+i+'_'+b[k].getAttribute("id")+'" onClick="load_bound(&quot;'+b[k].getAttribute("id")+'&quot;, &quot;'+i+'&quot;)">'+b[k].getAttribute("name")+'</div>';
 		}
-		
-		document.getElementById("side_bar").innerHTML = side_bar_html;
-	});
+	    }
+	    side_bar_html += "</div>"
+	}
+	
+	document.getElementById("side_bar").innerHTML = side_bar_html;
+    });
 }
 
 // Загрузка и отображение границы
 function load_bound(id, key){
+    for (p in polylines) {
+	for (var i = 0; i < polylines[p].polyline.length; i++) {
+	    polylines[p].polyline[i].setVisible(false);
+	}
+    }
+
+    if (selected_element_id != 'none') {
+	document.getElementById("side_bar_element_" + selected_element_id).className = "side_bar_element";
+    }
+
+    document.getElementById("side_bar_element_" + key + "_" + id).className += " selected";
+    selected_element_id = key + "_" + id;
+
+    if (polylines[selected_element_id] == undefined) {
 	downloadUrl(PATH_TO_BOUNDS_FOLDER+id+".xml", function(data) {
-		if (selected_element_id != 'none') {
-			document.getElementById("side_bar_element_" + selected_element_id).className = "side_bar_element";
+	    var bounds = new Object();
+	    bounds.polyline = Array();
+	    var line = data.documentElement.getElementsByTagName("points");
+	    bounds.area = new google.maps.LatLngBounds();
+	    for (var j = 0; j < line.length; j++) {
+		var p = line[j].getElementsByTagName("p");
+		var points = new Array();
+		for (var i = 0; i < p.length; i++) {
+		    points[i] = new google.maps.LatLng(parseFloat(p[i].getAttribute("lat")),
+						       parseFloat(p[i].getAttribute("lng")));
+		    bounds.area.extend(points[i]);
 		}
-		document.getElementById("side_bar_element_" + key + "_" + id).className += " selected";
-		selected_element_id = key + "_" + id;
-		if (0 && polyline.length > 0) {
-			for (var i = 0; i < polyline.length; i++) {
-				polyline[i].setMap(null);
-			}
-			polyline = Array();
-		}
-	    var old_polyline = polyline;
-	    polyline = Array();
-		var line = data.documentElement.getElementsByTagName("points");
-		var area = new google.maps.LatLngBounds();
-		for (var j = 0; j < line.length; j++) {
-			var p = line[j].getElementsByTagName("p");
-			var points = new Array();
-			for (var i = 0; i < p.length; i++) {
-				points[i] = new google.maps.LatLng(parseFloat(p[i].getAttribute("lat")), parseFloat(p[i].getAttribute("lng")));
-				area.extend(points[i]);
-			}
 		
-			polyline[j] = new google.maps.Polyline({
-				path: points,
-				strokeColor: BOUNDS_COLOR,
-				strokeOpacity: BOUNDS_OPACITY,
-				strokeWeight: BOUNDS_WEIGHT
-			});
-			polyline[j].setMap(map);
-		}
-		map.fitBounds(area);
+		bounds.polyline[j] = new google.maps.Polyline({
+		    path: points,
+		    strokeColor: BOUNDS_COLOR,
+		    strokeOpacity: BOUNDS_OPACITY,
+		    strokeWeight: BOUNDS_WEIGHT
+		});
+		bounds.polyline[j].setVisible(false);
+		bounds.polyline[j].setMap(map);
+	    }
+	    
+	    polylines[selected_element_id] = bounds;
+
+	    show_bounds(selected_element_id);
 	});
+    }
+    else {
+	show_bounds(selected_element_id);
+    }
+}
+
+function show_bounds(selected_element_id) {	
+    var polyline = polylines[selected_element_id].polyline;
+    for (var i = 0; i < polyline.length; i++) {
+	polyline[i].setVisible(true);
+    }
+    map.fitBounds(polylines[selected_element_id].area);
 }
 
 // Обработка щелчка на название района
