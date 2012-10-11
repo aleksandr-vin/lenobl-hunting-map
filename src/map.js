@@ -21,106 +21,108 @@ var BOUNDS_OPACITY = 1.0;			// Прозрачность линий границ 
 
 // Инициализация карты
 function initialize() {
-    	lo_center = new google.maps.LatLng(59.975,31.348);
-	
-	var lo_MapType = new CustomMapType();
-	
-	var lo_MapType_mini = new CustomMapType();
-	lo_MapType_mini.maxZoom = 7;
-	lo_MapType_mini.minZoom = 5;
-	
-	polylines = new Object();
-	selected_group_id = 'none';
-	selected_element_id = 'none';
-	
-	var mapOptions = {
-		zoom: 7,
-		center: lo_center,
-		navigationControl: true,
-		scaleControl: true,
-		mapTypeControl: true,
-		streetViewControl: false,
-		navigationControlOptions: {
-			style: google.maps.NavigationControlStyle.DEFAULT 
-		},
-		mapTypeControlOptions: {
-		    mapTypeIds: ['lo_map',
-				 google.maps.MapTypeId.SATELLITE,
-				 google.maps.MapTypeId.HYBRID]
-		}
+    lo_center = new google.maps.LatLng(59.975,31.348);
+    
+    var lo_MapType = new CustomMapType();
+    
+    var lo_MapType_mini = new CustomMapType();
+    lo_MapType_mini.maxZoom = 7;
+    lo_MapType_mini.minZoom = 5;
+    
+    polylines = new Object();
+    selected_group_id = 'none';
+    selected_element_id = 'none';
+    
+    var mapOptions = {
+	zoom: 7,
+	center: lo_center,
+	navigationControl: true,
+	scaleControl: true,
+	mapTypeControl: true,
+	streetViewControl: false,
+	navigationControlOptions: {
+	    style: google.maps.NavigationControlStyle.DEFAULT 
+	},
+	mapTypeControlOptions: {
+	    mapTypeIds: ['lo_map',
+			 google.maps.MapTypeId.SATELLITE,
+			 google.maps.MapTypeId.HYBRID]
 	}
-	
-	map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+    }
+    
+    map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-	var overlayMap = new google.maps.Map(
-		document.getElementById('overlay_map'), {
-		mapTypeId: 'lo_map_mini', 
-		zoom: 5,
-		disableDefaultUI: true,
-		disableDoubleClickZoom: true,
-		scrollwheel: false
+    var overlayMap = new google.maps.Map(
+	document.getElementById('overlay_map'), {
+	    mapTypeId: 'lo_map_mini', 
+	    zoom: 5,
+	    disableDefaultUI: true,
+	    disableDoubleClickZoom: true,
+	    scrollwheel: false
 	});
 
- 	google.maps.event.addListener(map, 'zoom_changed', function() {
-		var newZoom = Math.max(map.getZoom() - 4, 5);
-		if (overlayMap.getZoom() != newZoom) overlayMap.setZoom(newZoom);
-	});
+    google.maps.event.addListener(map, 'zoom_changed', function() {
+	var newZoom = Math.max(map.getZoom() - 4, 5);
+	if (overlayMap.getZoom() != newZoom) overlayMap.setZoom(newZoom);
+    });
 
-	overlayMap.bindTo('center', map, 'center');
+    overlayMap.bindTo('center', map, 'center');
 
-	var overDiv = overlayMap.getDiv();
-	map.getDiv().appendChild(overDiv);
-	overDiv.style.position = "absolute";
-	overDiv.style.right = "0px";
-	overDiv.style.bottom = "0px";
-	overDiv.style.zIndex = 10;
+    var overDiv = overlayMap.getDiv();
+    map.getDiv().appendChild(overDiv);
+    overDiv.style.position = "absolute";
+    overDiv.style.right = "0px";
+    overDiv.style.bottom = "0px";
+    overDiv.style.zIndex = 10;
 
-	google.maps.event.addListener(overlayMap, 'idle', function() {
-		overlayMap.getDiv().style.zIndex = 10;
-	});
-	
-	var homeControlDiv = document.createElement('DIV');
-	var homeControl = new HomeControl(homeControlDiv, map);
+    google.maps.event.addListener(overlayMap, 'idle', function() {
+	overlayMap.getDiv().style.zIndex = 10;
+    });
+    
+    var homeControlDiv = document.createElement('DIV');
+    var homeControl = new HomeControl(homeControlDiv, map);
 
-	homeControlDiv.index = 1;
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
+    homeControlDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
 
-	overlayMap.mapTypes.set('lo_map_mini', lo_MapType_mini);
-	map.mapTypes.set('lo_map', lo_MapType);
-	map.setMapTypeId('lo_map');
-	
-	var overlayPath = new google.maps.Polygon({
-		strokeColor: "#0000FF",
-		strokeOpacity: 0.7,
-		strokeWeight: 1,
-		fillColor: "#0000FF",
-		fillOpacity: 0.1
-	});
-	
-	google.maps.event.addListener(map, 'zoom_changed', function() {	
-		if (map.getZoom() < 8){
-			overlayPath.setMap(null);
-		} else {
-			overlayPath.setMap(overlayMap);
-		}
-	});
-	
-	google.maps.event.addListener(map, 'bounds_changed', function() {	
-		currentViewBounds = map.getBounds();
-		var overlayPoints = [
-			new google.maps.LatLng(currentViewBounds.getNorthEast().lat(),
-					       currentViewBounds.getNorthEast().lng()),
-			new google.maps.LatLng(currentViewBounds.getNorthEast().lat(),
-					       currentViewBounds.getSouthWest().lng()),
-			new google.maps.LatLng(currentViewBounds.getSouthWest().lat(),
-					       currentViewBounds.getSouthWest().lng()),
-			new google.maps.LatLng(currentViewBounds.getSouthWest().lat(),
-					       currentViewBounds.getNorthEast().lng())
-		];
-		overlayPath.setPath(overlayPoints);
-	});
-	
-	bounds_init();
+    overlayMap.mapTypes.set('lo_map_mini', lo_MapType_mini);
+    map.mapTypes.set('lo_map', lo_MapType);
+    map.setMapTypeId('lo_map');
+    
+    var overlayPath = new google.maps.Polygon({
+	strokeColor: "#0000FF",
+	strokeOpacity: 0.7,
+	strokeWeight: 1,
+	fillColor: "#0000FF",
+	fillOpacity: 0.1
+    });
+    
+    google.maps.event.addListener(map, 'zoom_changed', function() {	
+	if (map.getZoom() < 8){
+	    overlayPath.setMap(null);
+	} else {
+	    overlayPath.setMap(overlayMap);
+	}
+    });
+    
+    google.maps.event.addListener(map, 'bounds_changed', function() {	
+	currentViewBounds = map.getBounds();
+	var overlayPoints = [
+	    new google.maps.LatLng(currentViewBounds.getNorthEast().lat(),
+				   currentViewBounds.getNorthEast().lng()),
+	    new google.maps.LatLng(currentViewBounds.getNorthEast().lat(),
+				   currentViewBounds.getSouthWest().lng()),
+	    new google.maps.LatLng(currentViewBounds.getSouthWest().lat(),
+				   currentViewBounds.getSouthWest().lng()),
+	    new google.maps.LatLng(currentViewBounds.getSouthWest().lat(),
+				   currentViewBounds.getNorthEast().lng())
+	];
+	overlayPath.setPath(overlayPoints);
+    });
+
+    //mark = new google.maps.Marker({position: lo_center, title: 'XXXxx', map: map});
+
+    bounds_init();
 }
 
 // Custom-карта для Goolge Maps API
@@ -201,12 +203,15 @@ function load_bound(id, key){
 	document.getElementById("side_bar_element_" + selected_element_id).className = "side_bar_element";
     }
 
-    document.getElementById("side_bar_element_" + key + "_" + id).className += " selected";
+    var element = document.getElementById("side_bar_element_" + key + "_" + id);
+    element.className += " selected";
     selected_element_id = key + "_" + id;
 
     if (polylines[selected_element_id] == undefined) {
+	var bounds = new Object();
+	bounds.name = element.innerHTML;
+
 	downloadUrl(PATH_TO_BOUNDS_FOLDER+id+".xml", function(data) {
-	    var bounds = new Object();
 	    bounds.polyline = Array();
 	    var line = data.documentElement.getElementsByTagName("points");
 	    bounds.area = new google.maps.LatLngBounds();
@@ -245,6 +250,10 @@ function show_bounds(selected_element_id) {
 	polyline[i].setVisible(true);
     }
     map.fitBounds(polylines[selected_element_id].area);
+
+    info = new google.maps.InfoWindow({position: polylines[selected_element_id].area.getCenter(),
+				       content: polylines[selected_element_id].name});
+    info.open(map);
 }
 
 // Обработка щелчка на название района
